@@ -1,0 +1,13 @@
+services:
+  server:
+    build: ./server
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./server/data:/app/data
+  client:
+    build: ./client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
