@@ -10,4 +10,8 @@ app.get("/api/felanmalningar/:id/detaljer",auth,(q,r)=>{const felanmalan=db.prep
 const upload=multer({storage:multer.diskStorage({destination:(_q,_f,cb)=>cb(null,path.resolve("uploads")),filename:(_q,f,cb)=>cb(null,`${Date.now()}-${crypto.randomUUID()}${path.extname(f.originalname)}`)}),limits:{fileSize:5*1024*1024}});
 app.post("/api/felanmalningar/:id/bilder",auth,upload.single("bild"),(q:any,r)=>{if(!q.file)return r.status(400).json({message:"Ingen bild."});const id=crypto.randomUUID();db.prepare("INSERT INTO bilder VALUES(?,?,?,?,?)").run(id,q.params.id,q.file.filename,q.file.originalname,new Date().toISOString());r.status(201).json({id})});app.delete("/api/bilder/:id",auth,admin,(q,r)=>{const b=db.prepare("SELECT * FROM bilder WHERE id=?").get(q.params.id) as any;if(b&&fs.existsSync(path.resolve("uploads",b.filnamn)))fs.unlinkSync(path.resolve("uploads",b.filnamn));db.prepare("DELETE FROM bilder WHERE id=?").run(q.params.id);r.status(204).end()});
 app.get("/api/dashboard",auth,(_q,r)=>{const one=(s:string)=>(db.prepare(s).get() as any).c;r.json({fastigheter:one("SELECT COUNT(*) c FROM fastigheter"),lagenheter:one("SELECT COALESCE(SUM(antal_lagenheter),0)c FROM fastigheter"),hyresgaster:one("SELECT COUNT(*)c FROM hyresgaster"),oppnaArenden:one("SELECT COUNT(*)c FROM felanmalningar WHERE status!='Klar'"),arbetsorder:one("SELECT COUNT(*)c FROM arbetsorder WHERE status!='Klar'")})});
-app.listen(4000,()=>console.log("Fastighetsnavet v3 API på http://localhost:4000"));
+const PORT = Number(process.env.PORT) || 4000;
+
+app.listen(PORT, () => {
+  console.log(`Fastighetsnavet API kör på port ${PORT}`);
+});
